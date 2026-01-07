@@ -22,6 +22,6 @@ if __name__ == "__main__":
         print(df.head())
         print(df.tail())
         print(df)
-        df.to_csv("nifty_50_january_2023.csv", index=False)
+        df.to_csv("nifty_50_january_2025.csv", index=False)
     except Exception as e:
         print(f"Error fetching data: {e}")

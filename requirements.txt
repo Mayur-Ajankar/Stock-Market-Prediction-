@@ -3,3 +3,5 @@ numpy
 langchain
 yfinance
 scikit-learn
+dotenv
+requests
