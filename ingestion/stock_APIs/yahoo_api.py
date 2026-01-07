@@ -1,45 +1,47 @@
 import yfinance as yf
 import pandas as pd
-from .base import StockAPIBase
-
-
+from ingestion.stock_APIs.base import StockAPIBase
+from ingestion.stock_APIs.exceptions import SymbolNotFoundError, DataFetchError
 
 class YahooFinanceAPI(StockAPIBase):
-    """Concrete implementation of StockAPIBase using Yahoo Finance."""
 
     def fetch_historical_data(
-        self, 
-        symbol: list[str], 
-        start_date: str, 
+        self,
+        symbol: str,
+        start_date: str,
         end_date: str,
-        interval: str = '1d') -> pd.DataFrame:
-        """
-        Fetch historical stock data for a given symbol between start_date and end_date.
+        interval: str = "1d"
+    ) -> pd.DataFrame:
 
-        Args:
-            symbol (str): The stock symbol to fetch data for.
-            start_date (str): The start date for the data in 'YYYY-MM-DD' format.
-            end_date (str): The end date for the data in 'YYYY-MM-DD' format.
-            interval (str): Data interval (e.g., '1d', '1wk', '1mo'). Default is '1d'."""
+        try:
+            df = yf.download(
+                symbol,
+                start=start_date,
+                end=end_date,
+                interval=interval,
+                progress=False
+            )
+        except Exception as e:
+            raise DataFetchError(str(e))
 
-        tickers = yf.Tickers(symbol)
-        df = tickers.history(start=start_date, 
-                            end=end_date, 
-                            interval=interval,
-                            auto_adjust=True)
-        
         if df.empty:
-            raise ValueError(f"YAHOO, No data found for symbol: {symbol} between {start_date} and {end_date}")
-        
+            raise SymbolNotFoundError(f"No data for {symbol}")
+
+        df = df.copy()  # 🔑 IMPORTANT
+
         df.reset_index(inplace=True)
+        df.rename(columns={
+            "Date": "date",
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+            "Volume": "volume"
+        }, inplace=True)
 
-        df=df.rename(columns={'Date':'date',
-                              'Open':'open',
-                              'High':'high',
-                                'Low':'low',
-                                'Close':'close',
-                                'Volume':'volume'})
-        
+        df["symbol"] = symbol
 
-
-        return df[['date', 'open', 'high', 'low', 'close', 'volume']]
+        return df[[
+            "date", "symbol",
+            "open", "high", "low", "close", "volume"
+        ]]
