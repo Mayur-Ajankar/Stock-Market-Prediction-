@@ -6,3 +6,4 @@ scikit-learn
 dotenv
 requests
 ipykernel
+fastparquet
