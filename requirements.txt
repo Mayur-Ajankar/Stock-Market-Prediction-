@@ -7,3 +7,6 @@ dotenv
 requests
 ipykernel
 fastparquet
+ta
+fastapi
+langchain_community
